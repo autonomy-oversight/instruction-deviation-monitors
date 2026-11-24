@@ -3,7 +3,7 @@
 **TL;DR.** In a two-agent pipeline, an uncertainty-based monitor (semantic entropy) flags **47%** of
 accidental instruction deviations but only **17%** of deviations made under an injected instruction,
 at a **9%** false-alarm rate on held-out tasks (Qwen2.5-7B-Instruct, 150 tasks; Fisher exact test
-p = 0.03). Deviations caused by an injected instruction are made *confidently*: 25 of 30 such
+p = 0.03). Deviations made under an injected instruction are mostly *confident*: 25 of 30 such
 held-out cases stay below the alarm threshold because the worker's samples largely agree on the
 wrong answer, leaving an uncertainty monitor little to detect.
 
@@ -83,7 +83,7 @@ The difference between the two detection rates is significant (Fisher exact test
 
 **Observations.**
 1. **Uncertainty partly tracks accidental deviations** (RQ1): about half are flagged, AUROC 0.70.
-2. **It is blind to injected deviations** (RQ2): AUROC 0.51, chance level. 25 of 30 such deviations
+2. **It performs at chance on injected deviations** (RQ2): AUROC 0.51. 25 of 30 such deviations
    are confident. When the model follows the injected note, it does so consistently.
 3. **Uncertainty also measures ambiguity, not only deviation.** 8 accidental steps are uncertain
    but compliant: unclear instructions make the worker hesitate even when it ends up right, and
