@@ -111,18 +111,23 @@ class HFBackend:
         self.tok = AutoTokenizer.from_pretrained(model)
         self.model = AutoModelForCausalLM.from_pretrained(model, torch_dtype="auto", device_map="auto")
 
-    def _ids(self, system, user):
+    def _inputs(self, system, user):
         msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
-        return self.tok.apply_chat_template(msgs, add_generation_prompt=True,
-                                            return_tensors="pt").to(self.model.device)
+        # return_dict=True gives the same structure in older and newer transformers versions
+        enc = self.tok.apply_chat_template(msgs, add_generation_prompt=True,
+                                           return_tensors="pt", return_dict=True)
+        return {k: v.to(self.model.device) for k, v in enc.items()}
 
     def generate(self, system, user, n, temperature):
-        ids = self._ids(system, user)
+        enc = self._inputs(system, user)
+        prompt_len = enc["input_ids"].shape[1]
+        pad = self.tok.pad_token_id if self.tok.pad_token_id is not None else self.tok.eos_token_id
         with self.torch.no_grad():
-            greedy = self.model.generate(ids, max_new_tokens=20, do_sample=False)
-            samples = self.model.generate(ids, max_new_tokens=20, do_sample=True,
-                                          temperature=temperature, num_return_sequences=n)
-        dec = lambda out: self.tok.decode(out[ids.shape[1]:], skip_special_tokens=True)
+            greedy = self.model.generate(**enc, max_new_tokens=20, do_sample=False, pad_token_id=pad)
+            samples = self.model.generate(**enc, max_new_tokens=20, do_sample=True,
+                                          temperature=temperature, num_return_sequences=n,
+                                          pad_token_id=pad)
+        dec = lambda out: self.tok.decode(out[prompt_len:], skip_special_tokens=True)
         return dec(greedy[0]), [dec(s) for s in samples]
 
 
