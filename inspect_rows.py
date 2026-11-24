@@ -17,6 +17,8 @@ def show(r):
         print(f"   - {h['name']:<12} {h['city']:<11} EUR {h['price']:<4} pets={'yes' if h['pets'] else 'no'}")
     print(f"worker greedy answer (raw): {r['greedy_raw']!r}")
     print(f"10 samples (raw): {[s.strip()[:25] for s in r['samples_raw']]}")
+    if r.get("injection"):
+        print(f"injection style: {r['injection']} (followed={r.get('followed_injection')})")
     if r["condition"] != "clean":
         print(f"manager message: {r['manager_message'][:300]!r}")
 
