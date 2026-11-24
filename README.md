@@ -81,8 +81,6 @@ The difference between the two detection rates is significant (Fisher exact test
 | Accidental | 8 | 9 | 35 | 10 |
 | Induced | 1 | 5 | 31 | **25** |
 
-![Confidence of deviations](results_main/fig_confidence.png)
-
 **Observations.**
 1. **Uncertainty partly tracks accidental deviations** (RQ1): about half are flagged, AUROC 0.70.
 2. **It is blind to injected deviations** (RQ2): AUROC 0.51, chance level. 25 of 30 such deviations
@@ -104,6 +102,8 @@ at commit "Freeze design: 7B, data injection".
 ## Limitations
 
 - One model, one random seed, synthetic tasks with one-word answers.
+- Low resolution of the monitor: with 10 samples and one-word answers, most steps have exactly zero
+  entropy (57–89% of steps in every condition), compliant or not.
 - A scripted manager rather than a second LLM agent.
 - 19 and 30 deviations in the key test groups, so the intervals are wide.
 - Fewer than the 300 compliant test steps needed to pin down a low false-alarm rate precisely.
