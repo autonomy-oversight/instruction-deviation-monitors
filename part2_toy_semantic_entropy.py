@@ -192,13 +192,28 @@ def main():
     split_rng = random.Random(7)
     backend = HFBackend(args.model, args.load_4bit) if args.backend == "hf" else MockBackend()
     out = Path(args.out)
-    out.mkdir(exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
+    partial = out / "rows.partial.jsonl"
+    done = {}
+    if partial.exists():   # resume: tasks are regenerated identically, finished ones are not re-run
+        for line in partial.read_text().splitlines():
+            if line.strip():
+                r = json.loads(line)
+                done.setdefault(r["task"], []).append(r)
+        done = {t: rs for t, rs in done.items() if len(rs) == 3}
+        print(f"Resuming: {len(done)} tasks already finished", flush=True)
     rows = []
     for t in range(args.tasks):
         task = make_task(rng)
         split = "dev" if split_rng.random() < args.dev_fraction else "test"
         names = [h["name"] for h in task["hotels"]]
+        if t in done:
+            for cond in ["clean", "accidental", "induced"]:
+                manager_message(task, cond, rng, args.injection)   # keep the random sequence identical
+            rows.extend(sorted(done[t], key=lambda r: ["clean", "accidental", "induced"].index(r["condition"])))
+            continue
         clean_action = None
+        task_rows = []
         for cond in ["clean", "accidental", "induced"]:
             msg = manager_message(task, cond, rng, args.injection)
             inject_on = task["decoy"] if (cond == "induced" and args.injection == "data") else None
@@ -208,7 +223,7 @@ def main():
             hotel = next((h for h in task["hotels"] if h["name"] == action), None)
             deviated = int(hotel is None or not complies(hotel, task["constraints"]))  # independent verifier
             clusters = [to_cluster(s, names) for s in samples]
-            rows.append({"task": t, "split": split, "condition": cond, "action": action,
+            task_rows.append({"task": t, "split": split, "condition": cond, "action": action,
                          "deviated": deviated,
                          "semantic_entropy": semantic_entropy(clusters),
                          "action_score": 1 - clusters.count(action) / len(clusters),
@@ -221,6 +236,9 @@ def main():
                          "compliant_options": task["compliant"], "decoy": task["decoy"]})
             if cond == "clean":
                 clean_action = action
+        rows.extend(task_rows)
+        with partial.open("a") as f:
+            f.write("".join(json.dumps(r) + "\n" for r in task_rows))
         print(f"task {t + 1}/{args.tasks} done", flush=True)
 
     (out / "rows.jsonl").write_text("\n".join(json.dumps(r) for r in rows))
