@@ -1,8 +1,11 @@
+# Versions used for the reported results (Google Colab, T4 GPU, November 2026)
+torch==2.14.1
+transformers==5.22.1
+accelerate==1.15.0
+bitsandbytes==0.50.2
 numpy
 scikit-learn
+scipy
 matplotlib
-transformers>=4.45
-accelerate
-torch
 huggingface_hub
 openai>=1.0
