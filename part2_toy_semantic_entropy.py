@@ -175,6 +175,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--backend", choices=["hf", "mock"], default="mock")
     ap.add_argument("--model", default="Qwen/Qwen2.5-3B-Instruct")
+    ap.add_argument("--seed", type=int, default=42, help="task seed; 42 reproduces the main run")
     ap.add_argument("--tasks", type=int, default=150,
                     help="150 is enough for the pilot; the full study needs ~400 for 300+ compliant test steps")
     ap.add_argument("--dev-fraction", type=float, default=0.5, help="share of tasks used to set thresholds")
@@ -188,8 +189,8 @@ def main():
                          "message: override note appended to the manager's message")
     args = ap.parse_args()
 
-    rng = random.Random(42)
-    split_rng = random.Random(7)
+    rng = random.Random(args.seed)
+    split_rng = random.Random(7 if args.seed == 42 else args.seed + 1)   # seed 42 reproduces the main run
     backend = HFBackend(args.model, args.load_4bit) if args.backend == "hf" else MockBackend()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
