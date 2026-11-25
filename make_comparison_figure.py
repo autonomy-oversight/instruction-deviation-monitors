@@ -50,7 +50,9 @@ def main():
                 xpos = m + (s - (len(data) - 1) / 2) * 0.18
                 ax.errorbar(xpos, a, yerr=[[a - lo], [hi - a]], fmt=MARKERS[s % 4], color=colour,
                             capsize=4, markersize=7, label=None)
-                ax.text(xpos + 0.05, a, f"{a:.2f}", va="center", fontsize=9)
+                left = s < (len(data) - 1) / 2          # first seed's labels go left, the rest right
+                ax.text(xpos + (-0.05 if left else 0.05), a, f"{a:.2f}", va="center", fontsize=9,
+                        ha="right" if left else "left")
                 print(f"{labels[s]} | {cond} | {name}: AUROC {a:.2f} [{lo:.2f}-{hi:.2f}] (deviations={len(pos)})")
         ax.axhline(0.5, color="grey", ls="--", lw=1)
         ax.text(1.45, 0.51, "chance", color="grey", fontsize=9, ha="right", va="bottom")
