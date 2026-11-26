@@ -39,7 +39,7 @@ def main():
     labels = args.labels or [Path(f).name for f in args.folders]
     data = [load(f) for f in args.folders]
 
-    fig, axes = plt.subplots(1, 2, figsize=(9, 4.2), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(9, 4.6), sharey=True)
     for ax, (cond, title) in zip(axes, CONDS):
         for m, (key, name, colour) in enumerate(MONITORS):
             for s, test in enumerate(data):
@@ -56,7 +56,6 @@ def main():
                         ha="right" if left else "left")
                 print(f"{labels[s]} | {cond} | {name}: AUROC {a:.2f} [{lo:.2f}-{hi:.2f}] (deviations={len(pos)})")
         ax.axhline(0.5, color="grey", ls="--", lw=1)
-        ax.text(1.55, 0.51, "chance", color="grey", fontsize=9, ha="right", va="bottom")
         ax.set_xticks([0, 1], [n for _, n, _ in MONITORS])
         ax.set_xlim(-0.6, 1.6)
         ax.set_title(title, fontsize=11)
@@ -66,10 +65,11 @@ def main():
     from matplotlib.lines import Line2D
     handles = [Line2D([], [], marker=MARKERS[s % 4], color="#555555", ls="none", markersize=7, label=labels[s])
                for s in range(len(data))]
-    axes[0].legend(handles=handles, title="Task seed", loc="lower left", fontsize=9, title_fontsize=9,
-                   frameon=False)
+    handles.append(Line2D([], [], color="grey", ls="--", lw=1, label="chance (0.5)"))
+    fig.legend(handles=handles, loc="lower center", ncol=len(handles), fontsize=9, frameon=False,
+               bbox_to_anchor=(0.5, 0.0))
     fig.suptitle("Uncertainty misses injected deviations; a step-by-step judge catches many of them", fontsize=12)
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
     fig.savefig(args.out, dpi=200)
     print(f"figure written to {args.out}")
 

@@ -149,7 +149,10 @@ python make_comparison_figure.py results_main results_seed2 --labels "seed 42" "
 | `part2_toy_semantic_entropy.py` | Pipeline, semantic entropy and evaluation |
 | `monitor_judge.py` | LLM-judge monitor (step-by-step and yes/no prompts) and the comparison |
 | `combined_monitor.py` | Combined monitor (entropy OR judge), preregistered for seed 3 |
-| `PREREGISTRATION.md` | Plan for seed 3, committed before the run |
+| `PREREGISTRATION.md` | Plan for seed 3 and Addendum 1 (second worker, sampling), each committed before its runs |
+| `pooled_analysis.py` | AUROC pooled over seeds, with accidental deviations split by kind |
+| `resample_entropy.py` | Recomputes semantic entropy for a finished run, sampling without cutoffs |
+| `accidental_breakdown.py` | Exploratory: accidental deviations split into blurred and buried instructions |
 | `make_comparison_figure.py` | AUROC figure for both monitors and seeds |
 | `make_figures.py` | Detection-rate figure for a single run |
 | `inspect_rows.py` | Print steps for manual inspection |
