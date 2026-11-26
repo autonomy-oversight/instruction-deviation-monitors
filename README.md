@@ -155,3 +155,7 @@ python make_comparison_figure.py results_main results_seed2 --labels "seed 42" "
 | `part1_mast_llm_judge.py` | Optional LLM-judge baseline on public multi-agent traces (not used in these results) |
 | `results_main/`, `results_seed2/` | Raw rows, scores and summaries of the two runs |
 | `results_compare/` | The comparison figure |
+
+## License
+
+This project is released under the [MIT License](LICENSE).
