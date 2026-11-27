@@ -206,6 +206,7 @@ python make_comparison_figure.py results_main results_seed2 results_seed3 \
 | `pooled_analysis.py` | AUROC pooled over seeds, with accidental deviations split by kind |
 | `resample_entropy.py` | Recomputes semantic entropy for a finished run, sampling without cutoffs |
 | `accidental_breakdown.py` | Exploratory: accidental deviations split by kind, per seed |
+| `robustness_analysis.py` | Task-clustered intervals and condition-specific AUROC (not preregistered) |
 | `make_comparison_figure.py` | AUROC figure for both monitors and three seeds |
 | `make_figures.py` | Detection-rate figure for a single run |
 | `inspect_rows.py` | Print steps for manual inspection |
