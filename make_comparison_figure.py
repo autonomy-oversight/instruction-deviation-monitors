@@ -8,6 +8,7 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -35,11 +36,14 @@ def main():
     ap.add_argument("folders", nargs="+")
     ap.add_argument("--labels", nargs="+")
     ap.add_argument("--out", default="fig_auroc.png")
+    ap.add_argument("--title", default="Uncertainty misses injected deviations; "
+                                       "a step-by-step judge catches many of them")
     args = ap.parse_args()
     labels = args.labels or [Path(f).name for f in args.folders]
     data = [load(f) for f in args.folders]
 
     fig, axes = plt.subplots(1, 2, figsize=(9, 4.6), sharey=True)
+    lowest = 1.0
     for ax, (cond, title) in zip(axes, CONDS):
         for m, (key, name, colour) in enumerate(MONITORS):
             for s, test in enumerate(data):
@@ -48,6 +52,7 @@ def main():
                 sub = ok + pos
                 y, x = [r["deviated"] for r in sub], [r[key] for r in sub]
                 a, (lo, hi) = auroc(y, x), bootstrap_ci(y, x)
+                lowest = min(lowest, lo)
                 xpos = m + (s - (len(data) - 1) / 2) * (0.3 if len(data) > 2 else 0.18)
                 ax.errorbar(xpos, a, yerr=[[a - lo], [hi - a]], fmt=MARKERS[s % 4], color=colour,
                             capsize=4, markersize=7, label=None)
@@ -60,7 +65,7 @@ def main():
         ax.set_xlim(-0.6, 1.6)
         ax.set_title(title, fontsize=11)
         ax.spines[["top", "right"]].set_visible(False)
-    axes[0].set_ylim(0.3, 1.0)
+    axes[0].set_ylim(min(0.3, np.floor((lowest - 0.03) * 10) / 10), 1.0)   # widen if any interval dips below 0.3
     axes[0].set_ylabel("AUROC on held-out tasks (95% CI)")
     from matplotlib.lines import Line2D
     handles = [Line2D([], [], marker=MARKERS[s % 4], color="#555555", ls="none", markersize=7, label=labels[s])
@@ -68,7 +73,7 @@ def main():
     handles.append(Line2D([], [], color="grey", ls="--", lw=1, label="chance (0.5)"))
     fig.legend(handles=handles, loc="lower center", ncol=len(handles), fontsize=9, frameon=False,
                bbox_to_anchor=(0.5, 0.0))
-    fig.suptitle("Uncertainty misses injected deviations; a step-by-step judge catches many of them", fontsize=12)
+    fig.suptitle(args.title, fontsize=12)
     fig.tight_layout(rect=(0, 0.07, 1, 1))
     fig.savefig(args.out, dpi=200)
     print(f"figure written to {args.out}")
