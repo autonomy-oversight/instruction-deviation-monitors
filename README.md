@@ -3,10 +3,10 @@
 **TL;DR.** In a two-agent pipeline where a hidden note in the data steers the worker (an indirect
 prompt injection), an uncertainty monitor (semantic entropy) does not flag the resulting deviations.
 It is at chance with a Qwen2.5-7B worker (pooled AUROC 0.49) and *below* chance with a
-Llama-3.1-8B worker (0.29): Llama followed the injection in about 90% of tasks and was *more*
-confident doing so than when it complied. A step-by-step LLM judge detects these deviations with
+Llama-3.1-8B worker (0.29; 0.35 against clean compliant steps only): Llama followed the injection in
+about 90% of tasks and was *more* confident doing so than when it complied. A step-by-step LLM judge detects these deviations with
 both workers (AUROC 0.83 and 0.81), but only because the violated requirement is in what it reads: it
-points the wrong way when the requirement was lost before reaching the worker (AUROC 0.30–0.35).
+cannot detect deviations whose requirement was lost before reaching the worker (AUROC 0.30–0.45).
 Combining both monitors catches *fewer* injected deviations than the judge alone. Two worker models,
 three task seeds each, held-out tasks; the main later analyses were
 [preregistered](PREREGISTRATION.md).
@@ -131,18 +131,50 @@ substantially (for example, induced steps: 80% → 60%, 76% → 57%, 77% → 61%
 the scores did change. Detection under injection did not (pooled AUROC 0.49 → 0.50); on accidental
 deviations it rose slightly (0.59 → 0.64).
 
+**Robustness checks** (not preregistered; held-out steps pooled over seeds; 95% intervals from a
+bootstrap that resamples whole tasks, since each task contributes three steps). The main analysis
+uses compliant steps of all conditions as negatives; here deviations are also compared with compliant
+steps of the clean condition only, and of their own condition only.
+
+| Deviations vs negatives | Entropy, Qwen | Judge, Qwen | Entropy, Llama | Judge, Llama |
+| --- | --- | --- | --- | --- |
+| Under injection vs all compliant (main) | 0.49 [0.45–0.54] | 0.83 [0.79–0.87] | 0.29 [0.25–0.33] | 0.81 [0.77–0.85] |
+| Under injection vs clean compliant | 0.52 [0.48–0.57] | 0.83 [0.78–0.87] | **0.35** [0.30–0.40] | 0.82 [0.78–0.86] |
+| Under injection vs compliant under injection | 0.46 [0.41–0.52] | 0.87 [0.81–0.92] | 0.21 [0.11–0.32]* | 0.92 [0.87–0.97]* |
+| Accidental vs clean compliant | 0.62 [0.55–0.68] | 0.64 [0.55–0.72] | 0.75 [0.68–0.83] | 0.58 [0.49–0.67] |
+| Accidental vs compliant accidental | 0.58 [0.51–0.65] | 0.58 [0.49–0.66] | 0.61 [0.53–0.69] | 0.51 [0.42–0.61] |
+| Buried requirements vs clean compliant | 0.67 [0.58–0.76] | 0.84 [0.78–0.89] | 0.84 [0.75–0.91] | 0.84 [0.78–0.89] |
+| Blurred price vs clean compliant | 0.57 [0.49–0.65] | 0.45 [0.35–0.56] | 0.68 [0.58–0.78] | 0.35 [0.25–0.45] |
+
+\* Only 19 compliant steps under injection for Llama: indicative only. Using all steps instead of
+held-out ones gives the same picture (Llama, under injection vs clean compliant: 0.34 [0.31–0.37]).
+
+- **Clustering barely matters:** task-clustered and step-level intervals differ by at most 0.01.
+- **Llama's below-chance result is partly a mix effect, but it holds.** Accidental compliant steps
+  are unusually uncertain (mean entropy 0.57 vs 0.33 for clean compliant steps), which pulls the
+  pooled AUROC down; against clean compliant steps alone, entropy is still clearly below chance
+  (0.35). Llama's injected deviations had zero entropy in 75% of cases, its clean compliant steps in 46%.
+- **Qwen's entropy is at chance under injection against every set of negatives** (0.46–0.52).
+- **The judge's advantage under injection is large and robust:** +0.33 [+0.28, +0.39] AUROC over
+  entropy for Qwen and +0.52 [+0.47, +0.57] for Llama.
+- **On accidental deviations, part of entropy's signal is ambiguity itself:** within the accidental
+  condition, its AUROC drops to 0.58–0.63.
+- **The judge's failure on a blurred price is "no signal" for Qwen (0.45) and "wrong direction" for
+  Llama (0.35).**
+
 **Observations.**
 1. **Uncertainty does not flag manipulation, and can point the wrong way.** A worker that follows an
    injected instruction does so consistently. For Llama, injected deviations are *more* certain than
-   compliant steps (AUROC 0.28–0.29 on every seed): an uncertainty monitor would rank them as the
-   safest steps.
+   compliant steps (AUROC 0.28–0.29 on every seed; 0.35 against clean compliant steps only): an
+   uncertainty monitor would rank them among the safest steps.
 2. **The step-by-step judge detects deviations whose requirement is visible in its input**, whether
    contradicted by an injection (AUROC 0.81–0.83) or buried in a long message (0.80–0.86), with both
    workers. Checking price, city and pets one by one exposes the decoy, even though the note claims it
    meets every requirement.
 3. **No monitor of the worker step can catch a requirement that never reached the worker.** With a
    blurred price limit, a pricier hotel is a reasonable reading of "not too expensive"; the judge, which
-   sees the same message, rightly calls it compliant, so its AUROC falls below chance (0.30–0.35).
+   sees the same message, rightly calls it compliant, so its AUROC is at or below chance (0.30–0.45,
+   depending on worker and negatives).
    These failures arise upstream, when the manager writes the message.
 4. **On accidental deviations, uncertainty carries some signal**, especially for Llama (0.69 pooled;
    0.82 on buried requirements), and it is the only monitor pointing the right way on a blurred price.
