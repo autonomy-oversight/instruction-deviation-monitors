@@ -1,0 +1,12 @@
+Semantic entropy, default vs full-distribution sampling (/content/drive/MyDrive/deviation-pilot/results_seed3)
+Full sampling: temperature 1.0, top_p 1.0, top_k 0 (0 = off)
+
+Share of steps with zero entropy (all steps):
+  default  clean 85%, accidental 82%, induced 77%
+  full     clean 74%, accidental 64%, induced 61%
+
+AUROC on held-out tasks (deviations of one type vs all compliant steps):
+  accidental, default sampling: n=158 (deviations=22) | AUROC=0.46 [95% CI 0.40-0.54]
+  accidental, full sampling: n=158 (deviations=22) | AUROC=0.53 [95% CI 0.42-0.66]
+  induced, default sampling: n=164 (deviations=28) | AUROC=0.49 [95% CI 0.42-0.57]
+  induced, full sampling: n=164 (deviations=28) | AUROC=0.52 [95% CI 0.41-0.61]
