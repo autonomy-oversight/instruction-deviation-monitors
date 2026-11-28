@@ -11,7 +11,6 @@ Combining both monitors catches *fewer* injected deviations than the judge alone
 three task seeds each, held-out tasks; the main later analyses were
 [preregistered](PREREGISTRATION.md).
 
-*Pilot project, BlueDot Technical AI Safety Project Sprint (Nov–Dec 2026).*
 
 ## Question
 
